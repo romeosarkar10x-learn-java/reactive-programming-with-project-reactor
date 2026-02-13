@@ -1,7 +1,6 @@
-package io.romeosarkar10x.learn.java.reactive_programming.mono_just;
+package io.romeosarkar10x.learn.java.reactive_programming.mono;
 
 import com.github.javafaker.Faker;
-import io.romeosarkar10x.learn.java.reactive_programming.subscriber.SubscriberImpl;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
