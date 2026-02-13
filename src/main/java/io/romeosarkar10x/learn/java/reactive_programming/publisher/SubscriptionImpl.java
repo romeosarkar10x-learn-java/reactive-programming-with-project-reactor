@@ -8,15 +8,23 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 
+
 public class SubscriptionImpl implements Subscription {
     private static final int MAX_ITEMS = 13;
     private static final Logger log = LoggerFactory.getLogger(SubscriptionImpl.class);
 
+    public enum EnumSubscriptionStatus {
+        OKAY,
+        CANCELLED,
+        COMPLETED,
+        ERROR
+    };
+
     private final Faker faker = Faker.instance();
     private final Subscriber<? super String> subscriber;
     private int count = 0;
-    private boolean cancelled;
-    private boolean complete;
+
+    private EnumSubscriptionStatus subscriptionStatus = EnumSubscriptionStatus.OKAY;
 
     SubscriptionImpl(Subscriber<? super String> subscriber) {
         this.subscriber = subscriber;
@@ -24,14 +32,16 @@ public class SubscriptionImpl implements Subscription {
 
     @Override
     public void request(long n) {
-        if (cancelled) {
-            log.info("Subscriber has requested {} items, but subscription has been cancelled", n);
-            return;
-        }
-
-        if (complete) {
-            log.info("Subscriber has requested {} items, but publisher status is completed", n);
-            return;
+        switch(subscriptionStatus) {
+            case EnumSubscriptionStatus.CANCELLED:
+                log.info("Subscriber has requested {} items, but 'SubscriptionStatus' is 'CANCELLED'", n);
+                return;
+            case EnumSubscriptionStatus.COMPLETED:
+                log.info("Subscriber has requested {} items, but 'SubscriptionStatus' is 'COMPLETED'", n);
+                return;
+            case EnumSubscriptionStatus.ERROR:
+                log.info("Subscriber has requested {} items, but 'SubscriptionStatus' is 'ERROR'", n);
+                return;
         }
 
         log.info("Subscriber has requested {} items...", n);
@@ -43,11 +53,11 @@ public class SubscriptionImpl implements Subscription {
                 // Do nothing...
             }
 
-            this.subscriber.onNext(faker.animal().name());
+            this.subscriber.onNext(faker.animal().name().toUpperCase());
         }
 
         if (count == MAX_ITEMS) {
-            this.complete = true;
+            this.subscriptionStatus = EnumSubscriptionStatus.COMPLETED;
             this.subscriber.onComplete();
         }
     }
@@ -55,6 +65,6 @@ public class SubscriptionImpl implements Subscription {
     @Override
     public void cancel() {
         log.info("Subscriber has cancelled the subscription");
-        this.cancelled = true;
+        this.subscriptionStatus = EnumSubscriptionStatus.COMPLETED;
     }
 }
